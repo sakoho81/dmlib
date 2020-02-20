@@ -149,6 +149,7 @@ class FakeDM():
         self.log = logging.getLogger(self.__class__.__name__)
         self.name = None
         self.transform = None
+        self.shape = 'square'
 
     def open(self, name=''):
         self.name = name
@@ -339,6 +340,9 @@ def open_dm(app, args, dm_transform=None):
         elif args.dm_driver == 'ciusb':
             from devwraps.ciusb import CIUsb
             dm = CIUsb()
+        elif args.dm_driver == 'alpao':
+            from devwraps.asdk import ASDK
+            dm = ASDK()
         else:
             raise NotImplementedError(args.dm_driver)
     except Exception as e:
@@ -410,7 +414,7 @@ def setup_logging(args):
 
 def add_dm_parameters(parser):
     parser.add_argument(
-        '--dm-driver', choices=['sim', 'bmc', 'ciusb'], default='sim')
+        '--dm-driver', choices=['sim', 'bmc', 'ciusb', 'alpao'], default='sim')
     parser.add_argument('--dm-name', type=str, default=None, metavar='SERIAL')
     parser.add_argument(
         '--dm-list', action='store_true', help='List detected devices')
