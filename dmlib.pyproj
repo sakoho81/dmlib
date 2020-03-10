@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{dce03aa3-c7f4-4a9c-8f2b-f216a4f90762}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>dmlib\gui.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>CondaEnv|CondaEnv|dmlib</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="devwraps\build\lib.win-amd64-3.8\devwraps\version.py" />
+    <Compile Include="devwraps\build\lib.win-amd64-3.8\devwraps\__init__.py" />
+    <Compile Include="devwraps\devwraps\version.py" />
+    <Compile Include="devwraps\devwraps\__init__.py" />
+    <Compile Include="devwraps\setup.py" />
+    <Compile Include="dmlib\calibration.py" />
+    <Compile Include="dmlib\control.py" />
+    <Compile Include="dmlib\core.py" />
+    <Compile Include="dmlib\dmplot.py" />
+    <Compile Include="dmlib\gui.py" />
+    <Compile Include="dmlib\interf.py" />
+    <Compile Include="dmlib\test\__init__.py" />
+    <Compile Include="dmlib\version.py" />
+    <Compile Include="dmlib\zpanel.py" />
+    <Compile Include="dmlib\__init__.py" />
+    <Compile Include="examples\calibration.py" />
+    <Compile Include="examples\data_collection.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="zernike\build\lib\zernike\czernike.py" />
+    <Compile Include="zernike\build\lib\zernike\version.py" />
+    <Compile Include="zernike\build\lib\zernike\__init__.py" />
+    <Compile Include="zernike\setup.py" />
+    <Compile Include="zernike\tests\test_czernike.py" />
+    <Compile Include="zernike\zernike\czernike.py" />
+    <Compile Include="zernike\zernike\version.py" />
+    <Compile Include="zernike\zernike\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="devwraps\devwraps.egg-info\dependency_links.txt" />
+    <Content Include="devwraps\devwraps.egg-info\requires.txt" />
+    <Content Include="devwraps\devwraps.egg-info\SOURCES.txt" />
+    <Content Include="devwraps\devwraps.egg-info\top_level.txt" />
+    <Content Include="devwraps\LICENSE.txt" />
+    <Content Include="dmlib.egg-info\dependency_links.txt" />
+    <Content Include="dmlib.egg-info\entry_points.txt" />
+    <Content Include="dmlib.egg-info\requires.txt" />
+    <Content Include="dmlib.egg-info\SOURCES.txt" />
+    <Content Include="dmlib.egg-info\top_level.txt" />
+    <Content Include="zernike\LICENSE.txt" />
+    <Content Include="zernike\zernike.egg-info\dependency_links.txt" />
+    <Content Include="zernike\zernike.egg-info\requires.txt" />
+    <Content Include="zernike\zernike.egg-info\SOURCES.txt" />
+    <Content Include="zernike\zernike.egg-info\top_level.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="devwraps" />
+    <Folder Include="devwraps\build\" />
+    <Folder Include="devwraps\build\lib.win-amd64-3.8\" />
+    <Folder Include="devwraps\build\lib.win-amd64-3.8\devwraps" />
+    <Folder Include="devwraps\devwraps" />
+    <Folder Include="devwraps\devwraps.egg-info" />
+    <Folder Include="dmlib" />
+    <Folder Include="dmlib.egg-info" />
+    <Folder Include="dmlib\test" />
+    <Folder Include="examples" />
+    <Folder Include="zernike" />
+    <Folder Include="zernike\build\" />
+    <Folder Include="zernike\build\lib\" />
+    <Folder Include="zernike\build\lib\zernike" />
+    <Folder Include="zernike\tests" />
+    <Folder Include="zernike\zernike" />
+    <Folder Include="zernike\zernike.egg-info" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="CondaEnv|CondaEnv|dmlib" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

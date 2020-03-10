@@ -9,11 +9,11 @@ from PyQt5.QtWidgets import QInputDialog
 
 class DMPlot:
 
-    def __init__(self, shape='round', sampling=128, nact=12, pitch=.3, roll=2, mapmul=.3, txs=(0, 0, 0)):
+    def __init__(self, geometry='round', sampling=128, nact=12, pitch=.3, roll=2, mapmul=.3, txs=(0, 0, 0)):
         self.floor = -1.5
-        assert shape in ('round', 'square')
-        self.shape = shape
-        if shape == 'round':
+        assert geometry in ('round', 'square')
+        self.geometry = geometry
+        if geometry == 'round':
             self.nact_x_diam = int(round(2 * np.sqrt(nact / np.pi)))
         else:
             self.nact_x_diam = int(round(np.sqrt(nact)))
@@ -68,9 +68,9 @@ class DMPlot:
         maps = []
         acts = []
         index = []
-        if self.shape == 'square':
+        if self.geometry == 'square':
             exclude = list(itertools.product((0, self.nact_x_diam - 1), repeat=2))
-        elif self.shape == 'round':
+        elif self.geometry == 'round':
             circle = np.zeros((self.nact_x_diam,) * 2)
             center = list(length//2 for length in circle.shape)
             circle[draw.circle(*center, self.nact_x_diam / 2, shape=circle.shape)] = 1
@@ -82,8 +82,11 @@ class DMPlot:
         count = 1
         patvis = []
         for i in range(x.shape[1]):
+
+
+
             for j in range(y.shape[0]):
-                if (i, j) in exclude:
+                if [i, j] in exclude:
                     continue
 
                 r = np.sqrt((xx - x[i, j])**2 + (yy - y[i, j])**2)

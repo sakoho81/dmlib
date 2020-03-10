@@ -7,12 +7,16 @@ import logging
 import numpy as np
 import h5py
 import hashlib
+import itertools
 
 from datetime import datetime
 from numpy.linalg import norm
 from PyQt5.QtWidgets import QErrorMessage, QInputDialog
 
 import dmlib.test
+
+from skimage import draw, filters
+
 
 from dmlib.version import __date__, __version__, __commit__
 
@@ -149,7 +153,7 @@ class FakeDM():
         self.log = logging.getLogger(self.__class__.__name__)
         self.name = None
         self.transform = None
-        self.shape = 'square'
+        self.geometry = 'round'
 
     def open(self, name=''):
         self.name = name
@@ -162,7 +166,7 @@ class FakeDM():
         return ['simdm0', 'simdm1']
 
     def size(self):
-        return 140
+        return 97
 
     def write(self, v):
         if self.transform:
@@ -433,3 +437,115 @@ def add_cam_parameters(parser):
     parser.add_argument(
         '--sim-cam-pix-size', metavar=('H', 'W'), type=float, nargs=2,
         default=(5.20, 5.20))
+
+class DmDrawing:
+    def __init__(self, nact, geometry):
+        assert geometry in ("round", "square")
+
+        # Initialize image and crop mask, based on DM geometry
+        if geometry == 'round':
+            nact_x_diam = int(round(2 * np.sqrt(nact / np.pi)))
+        
+            self.image_shape = (nact_x_diam,) * 2
+
+            dm_mask = np.zeros(self.image_shape)
+            center = list(length//2 for length in self.image_shape)
+            circle = draw.circle(*center, nact_x_diam / 2, shape=self.image_shape)
+            dm_mask[circle] = 1
+
+        else:
+            nact_x_diam = int(round(np.sqrt(nact)))
+        
+            self.image_shape = (nact_x_diam,) * 2
+        
+            dm_mask = np.ones(self.image_shape)
+            exclude = tuple(itertools.product((0, nact_x_diam - 1), repeat=2))
+            dm_mask[tuple(np.array(exclude).T)] = 0
+        
+        self.dm_mask = dm_mask
+
+    def draw(self, image, mag=.7):
+        assert image in ('centre', 'cross', 'x', 'rim', 'checker', 'arrows')
+        container = np.zeros(self.image_shape)
+         
+        if image == 'centre':
+            # Draw a small rectangle
+            extent = (3, 3)
+            start = tuple((i-j)//2 for i,j in zip(self.image_shape, extent))
+
+            rectangle = draw.rectangle(start, extent=extent, shape=self.image_shape)
+            container[rectangle] = 1
+
+        elif image == 'x':
+            points = list(itertools.product((0, container.shape[0]-1), repeat=2))
+
+            line_1 = draw.line(*points[0], *points[3])
+            line_2 = draw.line(*points[1], *points[2])
+
+            container[line_1] = 1
+            container[line_2] = 1
+
+        elif image == 'cross':
+            last_point = container.shape[0] - 1
+            mid_point = container.shape[0]//2
+            start_point = 0
+
+            line_1 = draw.line(start_point, mid_point, last_point, mid_point)
+            line_2 = draw.line(mid_point, start_point, mid_point, last_point)
+
+            container[line_1] = 1
+            container[line_2] = 1
+
+        elif image == 'checker':
+            odd = np.arange(1, self.image_shape[0], 2)
+            
+            container[odd, :] = 1
+            container[:, odd] = 0
+                       
+
+        elif image == 'rim':
+            padded = np.zeros(tuple(s+2 for s in self.image_shape))
+            padded[1:-1, 1:-1] = self.dm_mask
+            container = filters.sobel(padded)[1:-1, 1:-1]
+            container[container != 0] = 1
+
+        elif image == 'arrows':
+            offset = self.image_shape[0]//4
+            container = self._draw_arrow(offset=offset)
+            container += self._draw_arrow(offset=-offset)[::-1, :]
+            container[container != 0] = 1
+
+        container *= self.dm_mask
+        #return container[container > 0] * mag
+        return container
+
+    def _draw_arrow(self,scale=.6, offset=0):
+        size = self.image_shape[0]
+
+        assert scale < 1.0
+        assert offset < size // 2
+        container = np.zeros((size,)*2)
+        arrow_length = int(size*scale)
+    
+        start_y = (size - arrow_length)//2
+        stop_y = (size + arrow_length)//2
+    
+        x = size//2 + offset
+    
+        line_1 = draw.line(start_y, x, stop_y, x)
+        container[line_1] = 1
+
+        line_2 = draw.line(stop_y, x, stop_y-2, x-2)
+        container[line_2] = 1
+    
+        line_3 = draw.line(stop_y, x, stop_y-2, x+2)
+        container[line_3] = 1
+    
+        return container
+
+
+
+        
+
+
+
