@@ -21,9 +21,7 @@ def update_version():
         toks = check_output(
             'git describe --tags --long --dirty', universal_newlines=True,
             shell=True).strip().split('-')
-        version = toks[0].strip('v') + '+' + toks[1] + '.' + toks[2]
-        if toks[-1] == 'dirty':
-            version += '.dirty'
+        version = toks[0].strip('v') + '.' + toks[1]
         last = check_output(
             'git log -n 1', universal_newlines=True, shell=True)
         date = re.search(
@@ -56,13 +54,19 @@ setup(
     version=lookup_version(),
     description='Python tools for deformable mirror calibration',
     long_description=long_description,
-    url='',
+    long_description_content_type='text/markdown',
+    url='https://github.com/jacopoantonello/dmlib',
     author='The DMLib Project Contributors',
     author_email='jacopo@antonello.org',
-    license='to be defined',
+    license='GPLv3+',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Physics',
+        (
+            'License :: OSI Approved :: ' +
+            'GNU General Public License v3 or later (GPLv3+)'
+        ),
         'Programming Language :: Python :: 3',
     ],
     packages=['dmlib', 'dmlib.test'],
