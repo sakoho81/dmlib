@@ -11,3 +11,6 @@ dist/
 /examples/*.h5
 /examples/*.log
 *.log
+.idea/
+.vs/
+*.ipynb

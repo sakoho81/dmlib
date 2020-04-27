@@ -186,7 +186,10 @@ class Control(QMainWindow):
         self.dm_fig = FigureCanvas(Figure(figsize=(3, 2)))
         self.dm_ax = self.dm_fig.figure.add_subplot(1, 1, 1)
         central.addWidget(self.dm_fig)
-        self.dmplot = DMPlot()
+
+        self.dmplot = DMPlot(geometry=self.shared.dm_geometry,
+                             nact=self.shared.dm_size)
+
         self.dmplot.install_select_callback(
             self.dm_ax, self.shared.u, self, self.write_dm)
         self.dm_fig.figure.subplots_adjust(
@@ -1393,6 +1396,7 @@ class Shared:
         self.cam_dtype = cam.get_image_dtype()
         self.cam_shape = cam_shape
         self.dm_size = dm.size()
+        self.dm_geometry = dm.geometry
 
         self.dm = Array('d', dm.size(), lock=False)
         self.z_sp_buf = Array('d', 1024, lock=False)
