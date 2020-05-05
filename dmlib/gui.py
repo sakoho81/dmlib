@@ -35,7 +35,7 @@ from dmlib.version import __version__
 from dmlib.dmplot import DMPlot
 from dmlib.zpanel import ZernikePanel
 from dmlib.interf import FringeAnalysis
-from dmlib.calibration import WeightedLSCalib, make_normalised_input_matrix
+from dmlib.calibration import RegLSCalib, make_normalised_input_matrix
 from dmlib.control import ZernikeControl
 from dmlib.core import (
     hash_file, write_h5_header, add_log_parameters, setup_logging,
@@ -1542,7 +1542,7 @@ class Worker:
                 time.sleep(sleep)
 
             try:
-                img = cam.grab_image().copy()  # copy immediately
+                img = cam.grab_image()  # copy immediately
                 shared.cam[:] = img[:]
                 if img.max() == cam.get_image_max():
                     shared.cam_sat.value = 1
@@ -1673,7 +1673,7 @@ class Worker:
 
             notify_fun = make_notify()
 
-            calib = WeightedLSCalib()
+            calib = RegLSCalib()
             calib.calibrate(
                 U=self.dset['data/U'][()], images=self.dset['data/images'],
                 fringe=self.fringe, wavelength=wavelength,
@@ -1703,16 +1703,16 @@ class Worker:
     def open_calib(self, dname):
         if self.calib_name is None or self.calib_name != dname:
             with h5py.File(dname, 'r') as f:
-                if 'WeightedLSCalib' not in f:
+                if 'RegLSCalib' not in f:
                     self.shared.oq.put((
                         dname + ' does not look like a calibration',))
                     return -1
                 else:
                     shape1 = self.cam.shape()
                     shape2 = f[
-                        'WeightedLSCalib/fringe/FringeAnalysis/shape'][()]
+                        'RegLSCalib/fringe/FringeAnalysis/shape'][()]
                     pxsize1 = self.cam.get_pixel_size()
-                    pxsize2 = f['WeightedLSCalib/cam_pixel_size'][()]
+                    pxsize2 = f['RegLSCalib/cam_pixel_size'][()]
                     self.log.info(f'open_dset shape1 {shape1}')
                     self.log.info(f'open_dset shape2 {shape2}')
                     self.log.info(f'open_dset pxsize1 {pxsize1}')
@@ -1727,7 +1727,7 @@ class Worker:
                             f'Camera must be {shape2} {pxsize2} um; ' +
                             'Spawning new instance...', shape2, pxsize2))
                         return -1
-                    self.calib = WeightedLSCalib.load_h5py(f)
+                    self.calib = RegLSCalib.load_h5py(f)
                     self.calib_name = dname
                     return 0
         else:
@@ -1882,7 +1882,7 @@ class Worker:
                     try:
                         dm.write(U1[:, i])
                         time.sleep(sleep)
-                        img = cam.grab_image().copy()  # copy immediately
+                        img = cam.grab_image()  # copy immediately
                     except Exception as e:
                         self.log.error('run_dataacq', exc_info=True)
                         shared.oq.put((str(e),))
@@ -1945,7 +1945,7 @@ class Worker:
                 t2 = time.time()
 
                 time.sleep(sleep)
-                img = cam.grab_image().copy()
+                img = cam.grab_image()
 
                 t3 = time.time()
                 fringe.analyse(img, use_mask=True)

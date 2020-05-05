@@ -3,8 +3,8 @@
 
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
+from imageio import imread
 from numpy.random import uniform
 from skimage.transform import resize
 from skimage.io import imread
