@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QInputDialog
 
 class DMPlot:
 
-    def __init__(self, geometry='round', sampling=128, nact=12, pitch=.3, roll=2, mapmul=.3, txs=(0, 0, 0)):
+    def __init__(self, geometry='round', sampling=128, nact=12, pitch=.3, roll=2, mapmul=.3, txs=[0, 0, 0]):
         self.floor = -1.5
         assert geometry in ('round', 'square')
         self.geometry = geometry
@@ -69,37 +69,36 @@ class DMPlot:
         acts = []
         index = []
         if self.geometry == 'square':
-            exclude = list(itertools.product((0, self.nact_x_diam - 1), repeat=2))
+            exclude = list(tuple(x) for x in itertools.product((0, self.nact_x_diam - 1), repeat=2))
         elif self.geometry == 'round':
             circle = np.zeros((self.nact_x_diam,) * 2)
             center = list(length//2 for length in circle.shape)
             circle[draw.circle(*center, self.nact_x_diam / 2, shape=circle.shape)] = 1
             exclude = np.column_stack(np.where(circle == 0)).tolist()
+            exclude = list(tuple(x) for x in exclude)
         else:
             raise AttributeError("Invalid DM shape")
 
         #exclude = [(0, 0), (0, 11), (11, 0), (11, 11)]
         count = 1
         patvis = []
-        for i in range(x.shape[1]):
 
+        steps = itertools.product(range(x.shape[1]), range(y.shape[0]))
+        steps = filter(lambda step: step not in exclude, steps)
 
+        for step in steps:
+            i, j = step
+            r = np.sqrt((xx - x[i, j])**2 + (yy - y[i, j])**2)
+            z = np.exp(-self.roll*r/self.pitch)
+            acts.append(z.reshape(-1, 1))
 
-            for j in range(y.shape[0]):
-                if [i, j] in exclude:
-                    continue
-
-                r = np.sqrt((xx - x[i, j])**2 + (yy - y[i, j])**2)
-                z = np.exp(-self.roll*r/self.pitch)
-                acts.append(z.reshape(-1, 1))
-
-                mp = np.logical_and(
-                    np.abs(xx - x[i, j]) < self.mapmul*self.pitch,
-                    np.abs(yy - y[i, j]) < self.mapmul*self.pitch)
-                maps.append(mp)
-                index.append(count*mp.reshape(-1, 1))
-                patvis.append(mp.reshape(-1, 1).astype(np.float))
-                count += 1
+            mp = np.logical_and(
+                np.abs(xx - x[i, j]) < self.mapmul*self.pitch,
+                np.abs(yy - y[i, j]) < self.mapmul*self.pitch)
+            maps.append(mp)
+            index.append(count*mp.reshape(-1, 1))
+            patvis.append(mp.reshape(-1, 1).astype(np.float))
+            count += 1
 
         self.A_shape = xx.shape
         self.A = np.hstack(acts)

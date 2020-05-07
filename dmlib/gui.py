@@ -39,7 +39,7 @@ from dmlib.calibration import RegLSCalib, make_normalised_input_matrix
 from dmlib.control import ZernikeControl
 from dmlib.core import (
     hash_file, write_h5_header, add_log_parameters, setup_logging,
-    add_dm_parameters, add_cam_parameters, open_dm, open_cam)
+    add_dm_parameters, add_cam_parameters, open_dm, open_cam, DmDrawing)
 
 
 class Control(QMainWindow):
@@ -1471,6 +1471,8 @@ class Worker:
         self.shared = shared
         self.fringe = fringe
 
+        self.dm_presets = DmDrawing(self.dm.size(), self.dm.geometry)
+
     def run(self):
         cam = self.cam
         dm = self.dm
@@ -1494,7 +1496,7 @@ class Worker:
                 dm.write(shared.u)
                 shared.oq.put('OK')
             elif cmd[0] == 'preset':
-                shared.u[:] = dm.preset(cmd[1], cmd[2])
+                shared.u[:] = self.dm_presets.draw(cmd[1], cmd[2])
                 shared.oq.put('OK')
             elif cmd[0] == 'align':
                 self.run_align(*cmd[1:])

@@ -153,7 +153,7 @@ class FakeDM():
         self.log = logging.getLogger(self.__class__.__name__)
         self.name = None
         self.transform = None
-        self.geometry = 'round'
+        self.geometry = 'square'
 
     def open(self, name=''):
         self.name = name
@@ -166,7 +166,7 @@ class FakeDM():
         return ['simdm0', 'simdm1']
 
     def size(self):
-        return 97
+        return 140
 
     def write(self, v):
         if self.transform:
@@ -438,7 +438,10 @@ def add_cam_parameters(parser):
         '--sim-cam-pix-size', metavar=('H', 'W'), type=float, nargs=2,
         default=(5.20, 5.20))
 
-class DmDrawing:
+
+class DmDrawing(object):
+    supported_presets = ('centre', 'cross', 'x', 'rim', 'checkerboard', 'arrows', 'reset', 'set_all')
+
     def __init__(self, nact, geometry):
         assert geometry in ("round", "square")
 
@@ -465,10 +468,16 @@ class DmDrawing:
         self.dm_mask = dm_mask
 
     def draw(self, image, mag=.7):
-        assert image in ('centre', 'cross', 'x', 'rim', 'checker', 'arrows')
+        assert image in self.supported_presets
         container = np.zeros(self.image_shape)
-         
-        if image == 'centre':
+
+        if image == 'reset':
+            pass
+
+        elif image == 'set_all':
+            container = np.ones(self.image_shape)
+
+        elif image == 'centre':
             # Draw a small rectangle
             extent = (3, 3)
             start = tuple((i-j)//2 for i,j in zip(self.image_shape, extent))
@@ -496,12 +505,11 @@ class DmDrawing:
             container[line_1] = 1
             container[line_2] = 1
 
-        elif image == 'checker':
+        elif image == 'checkerboard':
             odd = np.arange(1, self.image_shape[0], 2)
             
             container[odd, :] = 1
             container[:, odd] = 0
-                       
 
         elif image == 'rim':
             padded = np.zeros(tuple(s+2 for s in self.image_shape))
@@ -515,9 +523,8 @@ class DmDrawing:
             container += self._draw_arrow(offset=-offset)[::-1, :]
             container[container != 0] = 1
 
-        container *= self.dm_mask
-        #return container[container > 0] * mag
-        return container
+        return container[self.dm_mask > 0] * mag
+        #return container
 
     def _draw_arrow(self,scale=.6, offset=0):
         size = self.image_shape[0]
