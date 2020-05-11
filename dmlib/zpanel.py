@@ -712,7 +712,7 @@ class DMWindow(QMainWindow):
             def f(z, do_write=True):
                 # callback for zpanel
                 if do_write:
-                    self.zcontrol.write(z)
+                    self.dm.write(self.zcontrol.write(z))
 
                 if self.zcontrol.saturation:
                     satind = 'SAT'

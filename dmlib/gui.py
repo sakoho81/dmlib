@@ -1925,12 +1925,12 @@ class Worker:
         calib = self.calib
         fringe = self.calib.fringe
         cam = self.cam
-        dm = ZernikeControl(self.dm, calib)
+        zernikecontrol = ZernikeControl(calib)
         shared = self.shared
-        shared.z_size.value = dm.ndof
+        shared.z_size.value = zernikecontrol.ndof
 
         calib.reflatten(noflat_index)
-        dm.flat_on = flat
+        zernikecontrol.flat_on = flat
 
         for i in range(4):
             self.shared.mag_ext[i] = fringe.ext4[i]/1000
@@ -1938,9 +1938,9 @@ class Worker:
         while True:
             try:
                 t1 = time.time()
-                dm.write(self.shared.z_sp[:dm.ndof])
-                self.shared.u[:] = dm.u[:]
-                if dm.saturation:
+                self.dm.write(zernikecontrol.write(self.shared.z_sp[:zernikecontrol.ndof]))
+                self.shared.u[:] = zernikecontrol.u[:]
+                if zernikecontrol.saturation:
                     self.shared.dm_sat.value = 1
                 else:
                     self.shared.dm_sat.value = 0
@@ -1957,11 +1957,11 @@ class Worker:
                 t4 = time.time()
 
                 t5 = time.time()
-                phi_sp = calib.zernike_eval(shared.z_sp[:dm.ndof])
+                phi_sp = calib.zernike_eval(shared.z_sp[:zernikecontrol.ndof])
                 t6 = time.time()
 
                 t7 = time.time()
-                shared.z_ms[:dm.ndof] = calib.zernike_fit(unwrapped)
+                shared.z_ms[:zernikecontrol.ndof] = calib.zernike_fit(unwrapped)
                 shared.z_ms[0] = 0
                 t8 = time.time()
 
