@@ -204,7 +204,7 @@ class FakeDM():
             for i in range(10):
                 u[10 + 12*i] = mag
                 u[21 + 12*i] = mag
-        elif name == 'checker':
+        elif name == 'checkerboard':
             c = 0
             s = mag
             for i in range(10):
@@ -372,14 +372,12 @@ def open_dm(app, args, dm_transform=None):
     # open device
     attempt_open(app, dm, args.dm_name, 'dm')
 
-    if dm_transform is None:
+    if args.dm_driver in ('ciusb', 'bmc'):
         dm.set_transform(SquareRoot())
-    elif dm_transform == SquareRoot.name:
-        dm.set_transform(SquareRoot())
-    elif dm_transform == 'v = u':
+    elif args.dm_driver in ('alpao', 'sim'):
         pass
     else:
-        raise NotImplementedError('unknown transform ' + dm_transform)
+        raise NotImplementedError(f'Transform for {args.dm_driver} unknown.')
 
     return dm
 
@@ -468,7 +466,8 @@ class DmDrawing(object):
         self.dm_mask = dm_mask
 
     def draw(self, image, mag=.7):
-        assert image in self.supported_presets
+        if image not in self.supported_presets:
+            LOG.error(f"Unknown DM preset {image}.")
         container = np.zeros(self.image_shape)
 
         if image == 'reset':
