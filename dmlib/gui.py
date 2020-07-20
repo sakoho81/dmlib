@@ -1835,7 +1835,7 @@ class Worker:
         align_names = []
         for name in ('centre', 'cross', 'x', 'rim', 'checkerboard', 'arrows'):
             try:
-                Ualign.append(dm.preset(name, 0.7).reshape(-1, 1))
+                Ualign.append(self.dm_presets.draw(name, 0.7).reshape(-1, 1))
                 align_names.append(name)
             except Exception:
                 pass

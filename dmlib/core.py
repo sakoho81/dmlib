@@ -153,7 +153,7 @@ class FakeDM():
         self.log = logging.getLogger(self.__class__.__name__)
         self.name = None
         self.transform = None
-        self.geometry = 'square'
+        self.geometry = 'round'
 
     def open(self, name=''):
         self.name = name
@@ -166,7 +166,7 @@ class FakeDM():
         return ['simdm0', 'simdm1']
 
     def size(self):
-        return 140
+        return 97
 
     def write(self, v):
         if self.transform:
