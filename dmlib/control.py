@@ -238,8 +238,8 @@ class ZernikeControl(QtCore.QObject):
 
         # handle saturation
         if norm(self.u, np.inf) > 1:
-            self.log.warn(
-                'Saturation {}'.format(str(np.abs(self.u).max())))
+            # self.log.warn(
+            #     'Saturation {}'.format(str(np.abs(self.u).max())))
             self.u[self.u > 1.] = 1.
             self.u[self.u < -1.] = -1.
             self.saturation = 1
@@ -250,6 +250,8 @@ class ZernikeControl(QtCore.QObject):
         self.voltageChanged.emit(self.u)
         if self.gui_callback:
             self.gui_callback()
+
+        return self.u
 
     def set_random_ab(self, rms=1.0):
         self.ab[:] = normal(size=self.ab.size)
@@ -444,6 +446,8 @@ class SVDControl(ZernikeControl):
         self.voltageChanged.emit(self.u)
         if self.gui_callback:
             self.gui_callback()
+
+        return self.u
 
     def save_parameters(self, merge={}):
         d = {**merge, **self.pars}
