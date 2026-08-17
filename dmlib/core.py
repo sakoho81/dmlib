@@ -11,7 +11,7 @@ import itertools
 
 from datetime import datetime
 from numpy.linalg import norm
-from PyQt5.QtWidgets import QErrorMessage, QInputDialog
+from qtpy.QtWidgets import QErrorMessage, QInputDialog
 
 import dmlib.test
 
@@ -275,7 +275,7 @@ def exit_exception(app, txt, exc):
     if app:
         e = QErrorMessage()
         e.showMessage(msg)
-        sys.exit(e.exec_())
+        sys.exit(e.exec())
     else:
         raise exc(msg)
 
@@ -284,7 +284,7 @@ def exit_error(app, text, exc):
     if app:
         e = QErrorMessage()
         e.showMessage(text)
-        sys.exit(e.exec_())
+        sys.exit(e.exec())
     else:
         raise exc(text)
 
@@ -316,7 +316,7 @@ def open_cam(app, args):
         if app:
             e = QErrorMessage()
             e.showMessage('detected cameras are: ' + str(devs))
-            sys.exit(e.exec_())
+            sys.exit(e.exec())
         else:
             sys.exit()
 
@@ -359,7 +359,7 @@ def open_dm(app, args, dm_transform=None):
         if app:
             e = QErrorMessage()
             e.showMessage('detected dms are: ' + str(devs))
-            sys.exit(e.exec_())
+            sys.exit(e.exec())
         else:
             sys.exit()
 

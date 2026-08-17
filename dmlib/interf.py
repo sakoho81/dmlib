@@ -11,7 +11,7 @@ from numpy.fft import fft, ifft, fftshift
 from skimage import morphology
 from skimage import measure
 from skimage.restoration import unwrap_phase
-from scipy.signal import tukey
+from scipy.signal.windows import tukey
 
 
 HDF5_options = {
@@ -23,7 +23,7 @@ HDF5_options = {
 
 
 def mgcentroid(xx, yy, img, thr=0.0):
-    assert(img.dtype == np.float)
+    assert(img.dtype == float)
 
     if thr > 0.0:
         img = img.copy()

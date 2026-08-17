@@ -18,13 +18,13 @@ from multiprocessing import Process, Queue, Array, Value
 from datetime import datetime, timezone
 from numpy.linalg import norm
 
-from matplotlib.backends.backend_qt5agg import FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QKeySequence, QFont
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt, QThread, Signal
+from qtpy.QtGui import QKeySequence, QFont
+from qtpy.QtWidgets import (
     QMainWindow, QTabWidget, QLabel, QPushButton, QGroupBox, QGridLayout,
     QCheckBox, QVBoxLayout, QFrame, QApplication, QShortcut, QDoubleSpinBox,
     QToolBox, QFileDialog, QSplitter, QInputDialog, QStyleFactory,
@@ -1264,7 +1264,7 @@ class Control(QMainWindow):
 
 class AlignListener(QThread):
 
-    sig_update = pyqtSignal(tuple)
+    sig_update = Signal(tuple)
 
     def __init__(self, shared):
         super().__init__()
@@ -1294,7 +1294,7 @@ class AlignListener(QThread):
 
 class CalibListener(QThread):
 
-    sig_update = pyqtSignal(tuple)
+    sig_update = Signal(tuple)
 
     def __init__(self, shared, dset, centre, radius):
         super().__init__()
@@ -1314,7 +1314,7 @@ class CalibListener(QThread):
 
 class DataAcqListener(QThread):
 
-    sig_update = pyqtSignal(tuple)
+    sig_update = Signal(tuple)
 
     def __init__(self, shared, wavelength, dmplot):
         super().__init__()
@@ -1346,7 +1346,7 @@ class DataAcqListener(QThread):
 
 class LoopListener(QThread):
 
-    sig_update = pyqtSignal(tuple)
+    sig_update = Signal(tuple)
 
     def __init__(self, shared):
         super().__init__()
@@ -1427,32 +1427,32 @@ class Shared:
         self.oq = Queue()
 
     def make_static(self):
-        self.u = np.frombuffer(self.dm, np.float)
-        self.z_sp = np.frombuffer(self.z_sp_buf, np.float)
-        self.z_ms = np.frombuffer(self.z_ms_buf, np.float)
-        self.z_er = np.frombuffer(self.z_er_buf, np.float)
+        self.u = np.frombuffer(self.dm, float)
+        self.z_sp = np.frombuffer(self.z_sp_buf, float)
+        self.z_ms = np.frombuffer(self.z_ms_buf, float)
+        self.z_er = np.frombuffer(self.z_er_buf, float)
         self.cam = np.frombuffer(
             self.cam_buf, self.cam_dtype).reshape(self.cam_shape)
         self.ft = np.frombuffer(
-            self.ft_buf, np.float).reshape(self.cam_shape)
+            self.ft_buf, float).reshape(self.cam_shape)
 
     def get_phase(self):
         nsum1 = self.fstord_shape[0]*self.fstord_shape[1]
         fstord = np.frombuffer(
-            self.fstord_buf, np.float, count=nsum1).reshape(self.fstord_shape)
+            self.fstord_buf, float, count=nsum1).reshape(self.fstord_shape)
         nsum2 = self.mag_shape[0]*self.mag_shape[1]
         mag = np.frombuffer(
-            self.mag_buf, np.float, count=nsum2).reshape(self.mag_shape)
+            self.mag_buf, float, count=nsum2).reshape(self.mag_shape)
         wrapped = np.frombuffer(
-            self.wrapped_buf, np.float, count=nsum2).reshape(self.mag_shape)
+            self.wrapped_buf, float, count=nsum2).reshape(self.mag_shape)
         unwrapped = np.frombuffer(
-            self.unwrapped_buf, np.float, count=nsum2).reshape(self.mag_shape)
+            self.unwrapped_buf, float, count=nsum2).reshape(self.mag_shape)
         return fstord, mag, wrapped, unwrapped
 
     def get_cl_data(self):
         nsum2 = self.mag_shape[0]*self.mag_shape[1]
         phi_err = np.frombuffer(
-            self.phi_err_buf, np.float, count=nsum2).reshape(self.mag_shape)
+            self.phi_err_buf, float, count=nsum2).reshape(self.mag_shape)
         return phi_err,
 
 
@@ -2054,7 +2054,7 @@ def main():
     control = Control(p, shared, cam_name, dm_name)
     control.show()
 
-    exit = app.exec_()
+    exit = app.exec()
 
     shared.iq.put('STOP')
     p.join()

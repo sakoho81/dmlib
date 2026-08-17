@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dmlib"
+version = "0.0.7"
+description = "Python tools for deformable mirror calibration"
+readme = "README.md"
+license = {text = "GPLv3+"}
+requires-python = ">=3.10"
+authors = [
+    {name = "The DMLib Project Contributors", email = "jacopo@antonello.org"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "numpy",
+    "h5py",
+    "scikit-image",
+    "zernike",
+    "imageio",
+]
+
+[project.urls]
+Homepage = "https://github.com/sakoho81/dmlib"
+
+[project.optional-dependencies]
+gui = ["qtpy", "pyside6"]
+plot = ["matplotlib"]
+
+[project.scripts]
+"dmlib.calibrate" = "dmlib.gui:main"
+"dmlib.control" = "dmlib.zpanel:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dmlib"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/dmlib", "/README.md"]

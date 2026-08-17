@@ -13,16 +13,16 @@ library implements the methods described in detail in this
 needs to control DMs. `dmlib` is not bound to particular hardware, and can be
 used with any kind of DM. To control actual hardware you can either use your
 own manufacturer-provided library or one of the existing wrappers found in the
-subpackage [devwraps](https://github.com/jacopoantonello/devwraps).
+subpackage [devwraps](https://github.com/sakoho81/devwraps).
 
 There are two possible use cases:
 
 - Full calibration and control using `dmlib`. You can use `dmlib`'s GUIs and
   embed them into your Python application. In this case your DM and scientific
   camera must be directly supported via the hardware wrappers subpackage
-  [devwraps](https://github.com/jacopoantonello/devwraps). A guide explaining
+  [devwraps](https://github.com/sakoho81/devwraps). A guide explaining
   how to use the GUIs is found
-  [here](https://github.com/jacopoantonello/dmlib/tree/master/doc).
+  [here](https://github.com/sakoho81/dmlib/tree/master/doc).
 - Calibration with `dmlib` and control using your *own code*. If your DM is
   directly supported by `dmlib`, then you can use `dmlib`'s calibration GUI to
   collect the calibration data and to generate a calibration file. Subsequently
@@ -36,31 +36,29 @@ There are two possible use cases:
 ## Installation
 
 Hardware devices such as DMs and scientific cameras are only supported in
-Windows via the [devwraps](https://github.com/jacopoantonello/devwraps)
-subpackage. You can still install `dmlib` under Linux and run the GUIs, but
-only in simulation mode (using dummy virtual devices).
+Windows via the [devwraps](https://github.com/sakoho81/devwraps)
+subpackage (see its own repository for installation instructions). You can
+still install `dmlib` under Linux and run the GUIs, but only in simulation
+mode (using dummy virtual devices).
 
-To install `dmlib` in Windows, follow the steps below.
+`dmlib` is installed like any regular Python package. With
+[uv](https://docs.astral.sh/uv/):
 
-- You should first install the following software requirements:
-    - [Anaconda for Python 3](https://www.anaconda.com/download). This includes
-      Python as well as some necessary scientific libraries.
-    - [Build Tools for Visual
-      Studio](https://go.microsoft.com/fwlink/?linkid=840931). Note that this
-      is not *Visual Studio* itself, but just the command-line interface *Build
-      Tools for Visual Studio 2019*. You can find that under *Tools for Visual
-      Studio*.
-    - [Git](https://git-scm.com/download/win). This is necessary for the
-      automatic version numbering of this package. Also, make sure you choose
-      *Git from the command line and also 3rd-party software* in *Adjusting
-      your PATH environment*.
-- *Clone* this repository using Git. From any folder in File Explorer,
-  right-click and hit *Git Bash here*. Paste `git clone --recurse-submodules
-  https://github.com/jacopoantonello/dmlib` and hit enter. Do not use GitHub's
-  *Download ZIP* button above, as the installation script will not work in that
-  case.
-- Finally, double-click on `install.bat`. This script installs `dmlib` and its
-  two subpackages `zernike` and `devwraps`.
+```bash
+git clone https://github.com/sakoho81/dmlib
+cd dmlib
+uv sync --extra gui --extra plot
+```
+
+or with `pip`:
+
+```bash
+pip install .[gui,plot]
+```
+
+The `gui` and `plot` extras are required to run `dmlib`'s GUIs
+(`dmlib.calibrate`/`dmlib.control`); without them only the calibration/control
+library code is installed.
 
 ## Running dmlib GUIs
 
@@ -68,8 +66,8 @@ To install `dmlib` in Windows, follow the steps below.
 
 The calibration GUI `dmlib.gui` can be used to interferometrically calibrate
 and test a DM. You can start the GUI using a BAT script as outlined in the
-[guide](https://github.com/jacopoantonello/dmlib/tree/master/doc).
-Alternatively, open an *Anaconda Prompt* and query the available drivers with
+[guide](https://github.com/sakoho81/dmlib/tree/master/doc).
+Alternatively, open a terminal and query the available drivers with
 `python -m dmlib.gui --help`. Select the appropriate drivers flags and run the
 GUI again without the `--help` flag.
 
@@ -97,8 +95,8 @@ modifying the `examples/run_calibration_gui.bat`.
 The control GUI `dmlib.zpanel` can load a DM calibration file and control the
 DM in open-loop using Zernike modes. You can start the GUI using a BAT script
 as outlined in the
-[guide](https://github.com/jacopoantonello/dmlib/tree/master/doc).
-Alternatively, open an *Anaconda Prompt* and use the `-m dmlib.zpanel` flag to
+[guide](https://github.com/sakoho81/dmlib/tree/master/doc).
+Alternatively, open a terminal and use the `-m dmlib.zpanel` flag to
 start this GUI. You can query the GUIs flags with `--help` as seen above.
 
 ## References
