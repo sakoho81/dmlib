@@ -9,6 +9,8 @@ from copy import deepcopy
 from numpy.random import normal
 from numpy.linalg import norm, svd, pinv
 
+from qtpy import QtCore
+
 
 h5_prefix = 'dmlib/control/'
 
@@ -27,7 +29,9 @@ def get_parameters_info():
         }
 
 
-class ZernikeControl:
+class ZernikeControl(QtCore.QObject):
+
+    voltageChanged = QtCore.Signal(np.ndarray)
 
     @staticmethod
     def get_default_parameters():
@@ -59,7 +63,8 @@ class ZernikeControl:
             }
 
     def __init__(
-            self, dm, calib, pars={}, h5f=None):
+            self, calib, pars={}, h5f=None, **kwargs):
+        super().__init__(**kwargs)
         self.log = logging.getLogger(self.__class__.__name__)
         pars = {
             **deepcopy(self.get_default_parameters()),
@@ -95,7 +100,6 @@ class ZernikeControl:
         self.nu = nu
         self.ndof = ndof
 
-        self.dm = dm
         self.calib = calib
         self.indices = indices
         self.h5f = h5f
@@ -234,8 +238,8 @@ class ZernikeControl:
 
         # handle saturation
         if norm(self.u, np.inf) > 1:
-            self.log.warn(
-                'Saturation {}'.format(str(np.abs(self.u).max())))
+            # self.log.warn(
+            #     'Saturation {}'.format(str(np.abs(self.u).max())))
             self.u[self.u > 1.] = 1.
             self.u[self.u < -1.] = -1.
             self.saturation = 1
@@ -243,11 +247,11 @@ class ZernikeControl:
             self.saturation = 0
         assert(norm(self.u, np.inf) <= 1.)
 
-        # write raw voltages
-        self.dm.write(self.u)
-
+        self.voltageChanged.emit(self.u)
         if self.gui_callback:
             self.gui_callback()
+
+        return self.u
 
     def set_random_ab(self, rms=1.0):
         self.ab[:] = normal(size=self.ab.size)
@@ -439,10 +443,11 @@ class SVDControl(ZernikeControl):
 
         assert(norm(self.u, np.inf) <= 1.)
 
-        self.dm.write(self.u)
-
+        self.voltageChanged.emit(self.u)
         if self.gui_callback:
             self.gui_callback()
+
+        return self.u
 
     def save_parameters(self, merge={}):
         d = {**merge, **self.pars}

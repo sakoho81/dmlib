@@ -23,12 +23,12 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import QKeySequence, QFont
 from PyQt5.QtWidgets import (
     QMainWindow, QTabWidget, QLabel, QPushButton, QGroupBox, QGridLayout,
     QCheckBox, QVBoxLayout, QFrame, QApplication, QShortcut, QDoubleSpinBox,
     QToolBox, QFileDialog, QSplitter, QInputDialog, QStyleFactory,
-    QSizePolicy,
+    QSizePolicy, QWidget
     )
 
 from dmlib.version import __version__
@@ -39,7 +39,7 @@ from dmlib.calibration import RegLSCalib, make_normalised_input_matrix
 from dmlib.control import ZernikeControl
 from dmlib.core import (
     hash_file, write_h5_header, add_log_parameters, setup_logging,
-    add_dm_parameters, add_cam_parameters, open_dm, open_cam)
+    add_dm_parameters, add_cam_parameters, open_dm, open_cam, DmDrawing)
 
 
 class Control(QMainWindow):
@@ -64,8 +64,13 @@ class Control(QMainWindow):
 
         central = QSplitter(Qt.Horizontal)
 
-        self.toolbox = QToolBox()
-        self.make_toolbox()
+        self.toolbox = QWidget()
+        self.toolbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sidebar_layout = QVBoxLayout()
+        sidebar_layout.addWidget(self.make_tool_dm())
+        sidebar_layout.addWidget(self.make_tool_cam())
+        self.toolbox.setLayout(sidebar_layout)
+        #self.make_toolbox()
         central.addWidget(self.toolbox)
 
         self.tabs = QTabWidget()
@@ -114,6 +119,12 @@ class Control(QMainWindow):
             s.blockSignals(True)
             s.setValue(v())
             s.blockSignals(False)
+        
+        label = QLabel()
+        label.setText(f"Camera: {self.cam_name}")
+        font = QFont("Arial", 10, QFont.Bold)
+        label.setFont(font)
+        layout.addWidget(label)
 
         g1 = QGroupBox('Exposure [ms]')
         gl1 = QVBoxLayout()
@@ -165,7 +176,8 @@ class Control(QMainWindow):
             cam_get('get_exposure_range'),
             cam_get('get_exposure')))
 
-        self.toolbox.addItem(tool_cam, 'cam: ' + self.cam_name)
+        return tool_cam
+        #self.toolbox.addItem(tool_cam, 'cam: ' + self.cam_name)
 
     def update_dm_gui(self):
         self.dmplot.draw(self.dm_ax, self.shared.u)
@@ -178,15 +190,25 @@ class Control(QMainWindow):
         self.shared.iq.put(('write',))
         self.shared.oq.get()
 
+    #todo: This as well as the cam should be in separate classes. 
     def make_tool_dm(self):
         tool_dm = QFrame()
         central = QSplitter(Qt.Vertical)
         layout = QVBoxLayout()
 
+        label = QLabel()
+        label.setText(f"DM: {self.dm_name}")
+        font = QFont("Arial", 10, QFont.Bold)
+        label.setFont(font)
+        layout.addWidget(label)
+
         self.dm_fig = FigureCanvas(Figure(figsize=(3, 2)))
         self.dm_ax = self.dm_fig.figure.add_subplot(1, 1, 1)
         central.addWidget(self.dm_fig)
-        self.dmplot = DMPlot()
+
+        self.dmplot = DMPlot(geometry=self.shared.dm_geometry,
+                             nact=self.shared.dm_size)
+
         self.dmplot.install_select_callback(
             self.dm_ax, self.shared.u, self, self.write_dm)
         self.dm_fig.figure.subplots_adjust(
@@ -226,7 +248,7 @@ class Control(QMainWindow):
         gl2.addWidget(loadflat, 1, 1)
         i = 2
         j = 0
-        for name in ('centre', 'cross', 'x', 'rim', 'checker', 'arrows'):
+        for name in ('centre', 'cross', 'x', 'rim', 'checkerboard', 'arrows'):
             b = QPushButton(name)
             gl2.addWidget(b, i, j)
             if j == 1:
@@ -303,7 +325,9 @@ class Control(QMainWindow):
         self.dm_ax.axis('off')
         self.write_dm(None)
 
-        self.toolbox.addItem(tool_dm, 'dm: ' + self.dm_name)
+        return tool_dm
+
+        #self.toolbox.addItem(tool_dm, 'dm: ' + self.dm_name)
 
     def make_panel_align(self):
         frame = QFrame()
@@ -1393,6 +1417,7 @@ class Shared:
         self.cam_dtype = cam.get_image_dtype()
         self.cam_shape = cam_shape
         self.dm_size = dm.size()
+        self.dm_geometry = dm.geometry
 
         self.dm = Array('d', dm.size(), lock=False)
         self.z_sp_buf = Array('d', 1024, lock=False)
@@ -1467,6 +1492,8 @@ class Worker:
         self.shared = shared
         self.fringe = fringe
 
+        self.dm_presets = DmDrawing(self.dm.size(), self.dm.geometry)
+
     def run(self):
         cam = self.cam
         dm = self.dm
@@ -1490,7 +1517,7 @@ class Worker:
                 dm.write(shared.u)
                 shared.oq.put('OK')
             elif cmd[0] == 'preset':
-                shared.u[:] = dm.preset(cmd[1], cmd[2])
+                shared.u[:] = self.dm_presets.draw(cmd[1], cmd[2])
                 shared.oq.put('OK')
             elif cmd[0] == 'align':
                 self.run_align(*cmd[1:])
@@ -1806,9 +1833,9 @@ class Worker:
 
         Ualign = []
         align_names = []
-        for name in ('centre', 'cross', 'x', 'rim', 'checker', 'arrows'):
+        for name in ('centre', 'cross', 'x', 'rim', 'checkerboard', 'arrows'):
             try:
-                Ualign.append(dm.preset(name, 0.7).reshape(-1, 1))
+                Ualign.append(self.dm_presets.draw(name, 0.7).reshape(-1, 1))
                 align_names.append(name)
             except Exception:
                 pass
@@ -1919,12 +1946,12 @@ class Worker:
         calib = self.calib
         fringe = self.calib.fringe
         cam = self.cam
-        dm = ZernikeControl(self.dm, calib)
+        zernikecontrol = ZernikeControl(calib)
         shared = self.shared
-        shared.z_size.value = dm.ndof
+        shared.z_size.value = zernikecontrol.ndof
 
         calib.reflatten(noflat_index)
-        dm.flat_on = flat
+        zernikecontrol.flat_on = flat
 
         for i in range(4):
             self.shared.mag_ext[i] = fringe.ext4[i]/1000
@@ -1932,9 +1959,9 @@ class Worker:
         while True:
             try:
                 t1 = time.time()
-                dm.write(self.shared.z_sp[:dm.ndof])
-                self.shared.u[:] = dm.u[:]
-                if dm.saturation:
+                self.dm.write(zernikecontrol.write(self.shared.z_sp[:zernikecontrol.ndof]))
+                self.shared.u[:] = zernikecontrol.u[:]
+                if zernikecontrol.saturation:
                     self.shared.dm_sat.value = 1
                 else:
                     self.shared.dm_sat.value = 0
@@ -1951,11 +1978,11 @@ class Worker:
                 t4 = time.time()
 
                 t5 = time.time()
-                phi_sp = calib.zernike_eval(shared.z_sp[:dm.ndof])
+                phi_sp = calib.zernike_eval(shared.z_sp[:zernikecontrol.ndof])
                 t6 = time.time()
 
                 t7 = time.time()
-                shared.z_ms[:dm.ndof] = calib.zernike_fit(unwrapped)
+                shared.z_ms[:zernikecontrol.ndof] = calib.zernike_fit(unwrapped)
                 shared.z_ms[0] = 0
                 t8 = time.time()
 
