@@ -4,7 +4,7 @@ import itertools
 from skimage import draw
 import numpy as np
 
-from PyQt5.QtWidgets import QInputDialog
+from qtpy.QtWidgets import QInputDialog
 
 
 class DMPlot:
@@ -97,7 +97,7 @@ class DMPlot:
                 np.abs(yy - y[i, j]) < self.mapmul*self.pitch)
             maps.append(mp)
             index.append(count*mp.reshape(-1, 1))
-            patvis.append(mp.reshape(-1, 1).astype(np.float))
+            patvis.append(mp.reshape(-1, 1).astype(float))
             count += 1
 
         self.A_shape = xx.shape

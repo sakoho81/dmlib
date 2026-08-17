@@ -11,16 +11,16 @@ from os import path
 from h5py import File
 from numpy.linalg import norm
 from matplotlib import ticker
-from matplotlib.backends.backend_qt5agg import FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 from datetime import datetime
 from copy import deepcopy
 
-from PyQt5.QtCore import Qt, QMutex, pyqtSignal
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QKeySequence
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt, QMutex, Signal
+from qtpy.QtGui import QIntValidator, QDoubleValidator, QKeySequence
+from qtpy.QtWidgets import (
     QWidget, QFileDialog, QGroupBox, QGridLayout, QLabel, QPushButton,
     QLineEdit, QCheckBox, QScrollArea, QSlider, QDoubleSpinBox, QFrame,
     QErrorMessage, QApplication, QMainWindow, QSplitter, QShortcut,
@@ -663,11 +663,11 @@ class PlotCoeffs(QDialog):
 
 class DMWindow(QMainWindow):
 
-    sig_acquire = pyqtSignal(tuple)
-    sig_release = pyqtSignal(tuple)
-    sig_lock = pyqtSignal()
-    sig_unlock = pyqtSignal()
-    sig_draw = pyqtSignal(tuple)
+    sig_acquire = Signal(tuple)
+    sig_release = Signal(tuple)
+    sig_lock = Signal()
+    sig_unlock = Signal()
+    sig_draw = Signal(tuple)
 
     def __init__(self, app, dm, calib, pars={}, parent=None):
         super().__init__(parent)
@@ -1009,7 +1009,7 @@ class DMWindow(QMainWindow):
                 self.mutex.lock()
                 p = PlotCoeffs()
                 p.set_data(self.zcontrol.u, self.zcontrol.z)
-                p.exec_()
+                p.exec()
                 self.mutex.unlock()
             return f
 
@@ -1114,7 +1114,7 @@ def load_parameters(app, args):
     def quit(str1):
         e = QErrorMessage()
         e.showMessage(str1)
-        sys.exit(e.exec_())
+        sys.exit(e.exec())
 
     if args.no_params:
         # blank parameters
@@ -1156,7 +1156,7 @@ def new_zernike_window(app, args, pars={}):
     def quit(str1):
         e = QErrorMessage()
         e.showMessage(str1)
-        sys.exit(e.exec_())
+        sys.exit(e.exec())
 
     calib_file = None
 
@@ -1239,7 +1239,7 @@ def main():
     zwindow = DMWindow(app, dm, calib, pars)
     zwindow.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()
